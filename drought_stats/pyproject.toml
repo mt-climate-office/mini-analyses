@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "drought-stats"
+version = "0.1.0"
+description = ""
+authors = ["colinbrust <colin.brust@gmail.com>"]
+readme = "README.md"
+packages = [{include = "drought_stats"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+httpx = "^0.26.0"
+geopandas = "^0.14.3"
+polars = "^0.20.7"
+xlsx2csv = "^0.8.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
