@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <script>
+    const ctx = document.getElementById('myChart');
+
+    function get_start_date() {
+        // Create a new Date object for today
+        const today = new Date();
+
+        // Subtract seven days from today
+        const oneWeekEarlier = new Date(today);
+        oneWeekEarlier.setDate(today.getDate() - 14);
+
+        // Get the year, month, and day of the oneWeekEarlier date
+        const year = oneWeekEarlier.getFullYear();
+        // JavaScript months are zero-based, so we add 1 to get the correct month
+        const month = (oneWeekEarlier.getMonth() + 1).toString().padStart(2, '0');
+        const day = oneWeekEarlier.getDate().toString().padStart(2, '0');
+
+        // Format the date as desired (e.g., YYYY-MM-DD)
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        return formattedDate;
+    }
+
+    function get_elements(observation) {
+        const variables = {};
+        console.log(observation)
+        // Iterate over the keys in the data object
+        Object.keys(observation).forEach(key => {
+            // Exclude "station" and "datetime" keys
+            if (key !== "station" && key !== "datetime") {
+            // Extract variable name by removing units and sensor information
+            const variableName = key.split(" @ ")[0].split(" [")[0];
+            // Store the variable name as a key in the variables object to ensure uniqueness
+            variables[variableName] = true;
+            }
+        });
+
+        // Return an array containing the unique variable names
+        return Object.keys(variables);
+    }
+
+    async function get_station_data(date_start, station) {
+        try {
+            const response = await fetch(
+                "https://mesonet.climate.umt.edu/api/observations/hourly?" + new URLSearchParams({
+                    start_time: date_start,
+                    stations: station,
+                    elements: "air_temp,ppt,soil_vwc,soil_temp",
+                    units: "us",
+                    type: "json",
+                    premade: true,
+                    rm_na: true
+                })
+            )
+            const data = await response.json();
+            console.log(data);
+            return data;
+        } catch (error) {
+            console.error(`Error fetching ${station}'s data starting on ${date_start}.`);
+        }
+    }
+
+
+    const date_start = get_start_date();
+    const station = new URLSearchParams(window.location.search).get('station');
+
+    // Plot chart function
+    function plotChart(data) {
+        const labels = data.map(item => item.datetime);
+        const temperatures = data.map(item => item["Air Temperature @ 8 ft [°F]"]);
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Temperature',
+                data: temperatures,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    }
+                }
+            },
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'xy' // enable panning in both x and y directions
+                    },
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true,
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `${date_start} to Present Air Temperature at ${station}`
+                }
+            }
+        }
+        });
+    }
+
+    // Main function to fetch data and plot chart
+    async function fetchDataAndPlotChart() {
+        try {
+            const data = await get_station_data(date_start, station);
+            console.log(get_elements(data[0]))
+            plotChart(data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Call the main function to fetch data and plot chart
+    fetchDataAndPlotChart();
+
+    </script>
+</html>
