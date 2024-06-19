@@ -36,3 +36,9 @@ def get_usdm_county_table(
     ).select(
         pl.col("County", "D0", "D1", "D2", "D3", "D4")
     )
+
+
+# planetary computer option: 
+
+# https://github.com/microsoft/PlanetaryComputerExamples/blob/main/tutorials/census-data.ipynb
+# https://planetarycomputer.microsoft.com/dataset/us-census
