@@ -3,7 +3,7 @@ f = "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/time
 
 units_map <- tibble::tribble(
   ~base_long, ~base_short, ~si_short,
-  "Fahrenheit Degree-Days", "Df"
+  "Fahrenheit Degree-Days", "Df",
   "Degrees Fahrenheit", "Deg F", "Deg C",
   "Inches", "in", "mm",
   
