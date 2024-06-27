@@ -1,6 +1,14 @@
 f = "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/time-series/MT-001/tavg/1/5/1895-2024.csv?base_prd=true&begbaseyear=1991&endbaseyear=2020"
 
 
+units_map <- tibble::tribble(
+  ~base_long, ~base_short, ~si_short,
+  "Fahrenheit Degree-Days", "Df"
+  "Degrees Fahrenheit", "Deg F", "Deg C",
+  "Inches", "in", "mm",
+  
+)
+
 get_climate_ts <- function(
   county_num = "MT-001",
   variable = "tavg",
@@ -10,7 +18,6 @@ get_climate_ts <- function(
   month = (lubridate::today() - lubridate::dmonths(1)) |> lubridate::month(),
   por_start_year = 1991,
   por_end_year = 2020,
-  rank_desc = FALSE,
   ...
 ) {
   print(county_num)
@@ -37,6 +44,10 @@ get_climate_ts <- function(
     as.character() |> 
     stringr::str_replace("Missing: ", "") |> 
     as.numeric()
+  
+  units
+  
+  title <- colnames(meta)[[2]]
   
   httr::content(
     response, 
@@ -72,6 +83,8 @@ get_all_county_data <- function() {
     "zndx", "Palmer Z-Index"
   )
   
+  future::plan(future::multisession, workers = future::availableCores() -1)
+  
   dat <- tidycensus::fips_codes |>
     tibble::as_tibble() |>
     dplyr::filter(
@@ -84,7 +97,16 @@ get_all_county_data <- function() {
     dplyr::select(county, cnty_id) |>
     tidyr::crossing(variables) |>
     dplyr::rowwise() |>
-    dplyr::mutate(dat = list(get_climate_ts(county_num = cnty_id, variable = code)))
+    # Todo: Make this actually work
+    dplyr::mutate(dat = furrr::future_map2(cnty_id, code, ~ get_climate_ts(county_num = .x, variable = .y)))
 }
 # NOAA National Centers for Environmental information, Climate at a Glance: County Rankings, published June 2024, 
 # retrieved on June 27, 2024 from https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/rankings 
+library(ggplot2)
+make_ts_plot <- function(county, name, df) {
+  ggplot(df, aes(x=date, y=value)) + 
+    geom_point() + 
+    geom_line() + 
+    theme_minimal() + 
+    
+}
