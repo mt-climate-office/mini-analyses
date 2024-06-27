@@ -75,7 +75,8 @@ get_all_county_data <- function() {
   dat <- tidycensus::fips_codes |>
     tibble::as_tibble() |>
     dplyr::filter(
-      state == "MT"
+      state == "MT",
+      county_code != "113"
     ) |>
     dplyr::mutate(
       cnty_id = glue::glue("{state}-{county_code}")
