@@ -3,9 +3,9 @@ f = "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/time
 
 units_map <- tibble::tribble(
   ~base_long, ~base_short, ~si_short,
-  "Fahrenheit Degree-Days", "Df",
+  "Fahrenheit Degree-Days", "Df", "Dc",
   "Degrees Fahrenheit", "Deg F", "Deg C",
-  "Inches", "in", "mm",
+  "Inches", "in", "mm"
   
 )
 
@@ -99,6 +99,8 @@ get_all_county_data <- function() {
     dplyr::rowwise() |>
     # Todo: Make this actually work
     dplyr::mutate(dat = furrr::future_map2(cnty_id, code, ~ get_climate_ts(county_num = .x, variable = .y)))
+  
+  return(dat)
 }
 # NOAA National Centers for Environmental information, Climate at a Glance: County Rankings, published June 2024, 
 # retrieved on June 27, 2024 from https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/rankings 
