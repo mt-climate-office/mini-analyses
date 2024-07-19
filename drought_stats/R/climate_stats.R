@@ -109,6 +109,15 @@ make_ts_plot <- function(county, name, df) {
   ggplot(df, aes(x=date, y=value)) + 
     geom_point() + 
     geom_line() + 
-    theme_minimal() + 
+    theme_minimal() 
     
 }
+
+
+
+readxl::read_xlsx("~/Downloads/Book2.xlsx") %>% 
+  dplyr::select(date=`...1`, value=`Keogh N`) %>% View()
+  dplyr::mutate(value = as.numeric(value)) %>% 
+  ggplot(aes(x=date, y=value)) + 
+  geom_line() + 
+  theme_minimal()
